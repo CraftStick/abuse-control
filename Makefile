@@ -47,9 +47,8 @@ vuln:
 tidy:
 	go mod tidy
 
-# docker-compose.yml только тянет готовый образ из ghcr и секции build не имеет,
-# поэтому `docker compose build` был пустышкой. Собираем напрямую и передаём
-# версию — без --build-arg образ сообщал бы версию из исходников.
+# Образ собирается из этого каталога (`docker compose up -d --build`); этот target
+# нужен, чтобы передать версию — без --build-arg образ сообщал бы версию из исходников.
 docker-build:
 	docker build --build-arg VERSION=$(VERSION) \
 		-t $(BINARY):$(VERSION) -t $(BINARY):latest .

@@ -10,13 +10,39 @@ Telegram-бот для панели [Remnawave](https://github.com/remnawave): �
 - **Экраны «Статус / События / Люди»**: жив ли цикл проверки, нарушения за 24 часа, список онлайн-пользователей с городами и провайдерами. Из карточки можно отключить или включить подписку, добавить в белый список, удалить и забанить.
 - Тексты на русском, английском и китайском через `internal/i18n`.
 
-## Запуск
+## Установка
 
-1. `cp .env.example .env` и заполнить: токен бота, `TELEGRAM_ADMIN_IDS`, адрес и токен панели, `MAXMIND_LICENSE_KEY`.
-2. `docker compose -f deploy/docker-compose.yml up -d --build` (контекст сборки — этот каталог, `.env` лежит рядом с compose-файлом).
-3. `/start` в боте.
+Нужны Docker с Compose и панель Remnawave с API-токеном (Настройки → API-токены).
 
-Сервис вместе со своим Redis работает на машине с панелью; боту TunnelKey он ходит по адресу `ABUSE_BAN_URL` (шлюз docker-сети контейнера).
+```bash
+git clone https://github.com/CraftStick/abuse-control.git
+cd abuse-control
+cp .env.example .env
+```
+
+В `.env` заполните пять значений, остальное работает по умолчанию:
+
+| Переменная | Что это |
+|---|---|
+| `REMNAWAVE_API_URL` | адрес панели |
+| `REMNAWAVE_API_TOKEN` | API-токен панели |
+| `TELEGRAM_BOT_TOKEN` | токен бота от @BotFather |
+| `TELEGRAM_CHAT_ID` | чат, куда приходят уведомления |
+| `TELEGRAM_ADMIN_IDS` | ваш Telegram id (кому доступны кнопки) |
+
+```bash
+docker compose up -d --build
+```
+
+Откройте бота и отправьте `/start`. Логи: `docker compose logs -f limiter`.
+
+Redis (Valkey) поднимается вместе с сервисом, ставить его отдельно не нужно. Обновление: `git pull && docker compose up -d --build`.
+
+### Гео-проверка (по желанию)
+
+Включается `GEO_BLOCK=true` и ключом `MAXMIND_LICENSE_KEY` (бесплатный, на maxmind.com): базу городов сервис скачивает сам. Действие `GEO_ACTION` — `auto` (отключить подписку), `manual` (прислать алерт с кнопками) или `ban`. `ban` работает только вместе с ботом TunnelKey (`ABUSE_BAN_URL`, `ABUSE_BAN_TOKEN`), без него оставьте `auto` или `manual`.
+
+Подробные настройки лимитера — в `docs/LIMITER.md` (это документация оригинала: команды запуска там описаны для него, для этого форка используйте шаги выше).
 
 ## Проверки
 
@@ -24,5 +50,3 @@ Telegram-бот для панели [Remnawave](https://github.com/remnawave): �
 go vet ./...
 go test ./...
 ```
-
-Два теста в `internal/telegram` (`TestSendUpdateNotice_LinksToRelease`, `TestFormatStartupMessage`) падают из-за названия «Remnawave Limiter» в ожидаемом тексте: сборка называется «Abuse Control». Это расхождение осталось от прежнего форка.

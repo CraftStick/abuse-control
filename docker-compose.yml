@@ -1,7 +1,10 @@
+name: abuse-control
+
 services:
   limiter:
-    image: ghcr.io/syvlech/remnawave-limiter:latest
-    container_name: remnawave-limiter
+    image: abuse-control:local
+    build: .
+    container_name: abuse-control
     restart: unless-stopped
     env_file:
       - .env
@@ -24,8 +27,8 @@ services:
         max-file: "3"
 
   redis:
-    image: valkey/valkey:9.1-alpine
-    container_name: remnawave-limiter-redis
+    image: valkey/valkey:8.1-alpine
+    container_name: abuse-control-redis
     restart: unless-stopped
     command: ["valkey-server", "--appendonly", "yes"]
     volumes:
